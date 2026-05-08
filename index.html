@@ -1,0 +1,670 @@
+html
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Love Letter</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Cormorant+Garamond:wght@300;400&display=swap" rel="stylesheet">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+:root{
+  --rose:#c0392b;
+  --rose-dark:#922b21;
+  --cream:#fdf6ee;
+  --ink:#2c1010;
+  --ink-light:#b07070;
+  --bg:#1a0808;
+}
+
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:var(--bg);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'Playfair Display',serif;
+}
+
+#petals{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+}
+
+.scene{
+  position:relative;
+  z-index:2;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:20px;
+}
+
+.hint{
+  color:rgba(255,220,220,.6);
+  font-style:italic;
+  font-family:'Cormorant Garamond',serif;
+  letter-spacing:.08em;
+  transition:.4s;
+}
+
+.envelope{
+  position:relative;
+  width:320px;
+  height:220px;
+  cursor:pointer;
+  transition:.3s;
+  filter:drop-shadow(0 10px 30px rgba(192,57,43,.35));
+}
+
+.envelope:hover{
+  transform:translateY(-5px);
+}
+
+.env-body{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(160deg,#fdf0ec 0%,#f5ddd5 100%);
+  border-radius:6px;
+  border:1px solid #d9927a;
+  overflow:hidden;
+}
+
+.env-body::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(to top-right,transparent 49.5%,#e8b09a 50%,transparent 50.5%),
+    linear-gradient(to top-left,transparent 49.5%,#e8b09a 50%,transparent 50.5%);
+  opacity:.5;
+}
+
+.env-flap{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:110px;
+  clip-path:polygon(0 0,50% 60%,100% 0);
+  background:linear-gradient(160deg,#f5dbd1 0%,#edcbc0 100%);
+  transform-origin:top center;
+  transition:transform .7s cubic-bezier(.22,1,.36,1);
+  z-index:4;
+}
+
+.envelope.open .env-flap{
+  transform:rotateX(180deg);
+}
+
+.seal{
+  position:absolute;
+  top:50px;
+  left:50%;
+  transform:translateX(-50%);
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  background:var(--rose);
+  border:2px solid var(--rose-dark);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:5;
+  transition:.4s;
+}
+
+.envelope.open .seal{
+  transform:translateX(-50%) scale(0);
+  opacity:0;
+}
+
+#letter{
+  position:fixed;
+
+  top:50%;
+  left:50%;
+
+  transform:
+    translate(-50%, -50%)
+    scale(.92);
+
+  transform-origin:center;
+
+  width:min(420px, 90vw);
+
+  max-height:85vh;
+
+  overflow-y:auto;
+
+  background:var(--cream);
+
+  border-top:3px solid var(--rose);
+
+  border-radius:8px;
+
+  padding:36px 34px 30px;
+
+  box-shadow:0 8px 40px rgba(0,0,0,.3);
+
+  z-index:100;
+
+  opacity:0;
+
+  pointer-events:none;
+
+  transition:
+    transform .45s ease,
+    opacity .35s ease;
+}
+
+#letter::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  top:80px;
+
+  background:
+    repeating-linear-gradient(
+      transparent 0px,
+      transparent 27px,
+      #e2cfc4 28px
+    );
+
+  opacity:.28;
+  pointer-events:none;
+}
+
+#letter.full{
+  box-shadow:0 30px 80px rgba(0,0,0,.45);
+}
+
+#letter::-webkit-scrollbar{
+  width:8px;
+}
+
+#letter::-webkit-scrollbar-thumb{
+  background:rgba(192,57,43,.45);
+  border-radius:10px;
+}
+
+.close-btn{
+  position:absolute;
+  top:10px;
+  right:12px;
+  border:none;
+  background:none;
+  cursor:pointer;
+  font-size:20px;
+  color:var(--ink-light);
+  display:none;
+}
+
+#letter.full .close-btn{
+  display:block;
+}
+
+.letter-rose{
+  display:flex;
+  justify-content:center;
+  margin-bottom:15px;
+  font-size:42px;
+}
+
+.letter-salute{
+  font-size:14px;
+  letter-spacing:.15em;
+  color:var(--ink-light);
+  text-transform:uppercase;
+  margin-bottom:18px;
+  text-align:center;
+}
+
+.letter-body{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  font-size:20px;
+  line-height:1.9;
+  color:var(--ink);
+}
+
+.letter-body p{
+  margin-bottom:16px;
+}
+
+#overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(4px);
+  opacity:0;
+  pointer-events:none;
+  transition:.4s;
+  z-index:50;
+}
+
+#overlay.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.hearts{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  overflow:hidden;
+  z-index:300;
+}
+
+.heart{
+  position:absolute;
+  bottom:0;
+  opacity:0;
+  animation:floatHeart 2.5s ease-out forwards;
+}
+
+@keyframes floatHeart{
+  0%{
+    transform:translateY(0) scale(.5);
+    opacity:0;
+  }
+
+  20%{
+    opacity:1;
+  }
+
+  100%{
+    transform:translateY(-80vh) scale(1.2);
+    opacity:0;
+  }
+}
+
+#imageModal{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%) scale(.9);
+  width:min(500px, 85vw);
+  max-height:85vh;
+  background:transparent;
+  border-radius:8px;
+  padding:0;
+  box-shadow:none;
+  z-index:100;
+  opacity:0;
+  pointer-events:none;
+  transition:transform .45s ease, opacity .35s ease;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+#imageModal.show{
+  opacity:1;
+  pointer-events:auto;
+  transform:translate(-50%, -50%) scale(1);
+}
+
+#imageModal img{
+  width:100%;
+  height:auto;
+  border-radius:6px;
+  margin-bottom:0;
+  box-shadow:0 8px 40px rgba(0,0,0,.3);
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="petals"></canvas>
+
+<div class="scene">
+
+  <p class="hint" id="hint">
+    ✉ คลิกที่ซองจดหมาย
+  </p>
+
+  <div class="envelope" id="envelope">
+    <div class="env-body"></div>
+    <div class="env-flap"></div>
+
+    <div class="seal">
+      ❤️
+    </div>
+  </div>
+  <p class="hint" id="imageHint">
+    ✉ รูปเดียวที่อยู่ด้วยกัน
+  </p>
+</div>
+
+<div id="letter">
+
+  <button class="close-btn" onclick="closeEnvelope()">
+    ✕
+  </button>
+
+  <div class="letter-rose">
+    🌹
+  </div>
+
+  <p class="letter-salute">
+    A letter from my heart
+  </p>
+
+  <div class="letter-body">
+
+    <p>อาสึกะที่รัก</p>
+
+    <p>
+      ช่วงนี้เห็นเธอเหนื่อยๆ กับหลายเรื่อง ผมเลยอยากเขียนอะไรบางอย่างให้เธอได้อ่านแก้เหนื่อยนะ
+    </p>
+    <p>
+      ที่ผ่านมาผมอาจจะเป็นคนพูดไม่เก่ง หรือไม่ได้มีคำหวานอะไรมากมาย แต่ผมอยากให้เธอรู้ว่า ทุกวินาทีที่ผมอยู่กับเธอ ผมมีความสุขมากนะ ผมรักและหลงใหลในทุกอย่างที่เป็นเธอจริงๆ ไม่ว่าจะเป็นตอนที่เธอหัวเราะ หรือตอนที่เธอตั้งใจทำในสิ่งที่รัก
+    </p>
+    <p>
+      สำหรับผม เธอคือคนสำคัญที่ผมอยากดูแลและซัพพอร์ตตลอดไป ผมอาจจะไม่ได้แสดงออกด้วยวิธีที่หวือหวาเหมือนคนอื่น แต่ความตั้งใจที่ผมมีให้เธอมันคือความจริงใจที่อยากจะสร้างอนาคตและอยู่ข้างๆ เธอในทุกๆ วัน
+    </p>
+    <p>
+      ผมอยากเป็นคนที่เธอหันมาเมื่อไหร่ก็เจอ ไม่ว่าโลกข้างนอกจะวุ่นวายแค่ไหน หรือจะมีใครผ่านมาแล้วผ่านไป แต่ที่ตรงนี้จะมีผมที่มั่นคงต่อเธอเสมอ
+    </p>
+    <p>
+      อยู่เป็นความสุขของกันและกันแบบนี้ไปนานๆ นะครับ ผมรักเธอมากนะ
+    </p>
+    <p style="margin-top:16px;text-align:right;color:var(--rose);">
+      ฟุรุกะ อาโออิ ♥
+    </p>
+
+  </div>
+
+</div>
+
+<div id="imageModal" onclick="closeEnvelope()">
+  <button class="close-btn" onclick="event.stopPropagation(); closeEnvelope();">
+    ✕
+  </button>
+  <img src="meandyou.png" alt="Us">
+</div>
+
+<div id="overlay" onclick="closeEnvelope()"></div>
+<div class="hearts" id="hearts"></div>
+
+
+<script>
+const envelope = document.getElementById('envelope');
+const letter = document.getElementById('letter');
+const imageModal = document.getElementById('imageModal');
+const overlay = document.getElementById('overlay');
+const hint = document.getElementById('hint');
+const imageHint = document.getElementById('imageHint');
+
+let opened = false;
+let busy = false;
+
+envelope.addEventListener('click', () => {
+  if(busy) return;
+
+  if(!opened){
+    openEnvelope();
+  }else{
+    closeEnvelope();
+  }
+});
+
+imageHint.addEventListener('click', () => {
+  if(busy) return;
+  showImage();
+});
+
+function openEnvelope(){
+
+  busy = true;
+  opened = true;
+
+  hint.style.opacity = '0';
+  imageHint.style.opacity = '0';
+
+  envelope.classList.add('open');
+
+  // Play background music
+  const audio = document.getElementById('bgMusic');
+  audio.muted = false;
+  audio.volume = 0.2;
+  audio.play().catch(e => console.log('Audio playback failed:', e));
+
+  letter.style.opacity = '1';
+
+  letter.style.pointerEvents = 'auto';
+
+  letter.style.transform =
+    'translate(-50%, -50%) scale(.92)';
+
+  void letter.offsetHeight;
+
+  letter.style.transition =
+    'transform .45s ease, opacity .35s ease';
+
+  setTimeout(() => {
+
+    overlay.classList.add('show');
+
+    letter.classList.add('full');
+
+    letter.style.transform =
+      'translate(-50%, -50%) scale(1)';
+
+    burstHearts();
+
+    busy = false;
+
+  },100);
+}
+
+function showImage(){
+
+  busy = true;
+
+  // Play background music
+  const audio = document.getElementById('bgMusic');
+  audio.muted = false;
+  audio.volume = 0.2;
+  audio.play().catch(e => console.log('Audio playback failed:', e));
+
+  imageModal.style.opacity = '1';
+
+  imageModal.style.pointerEvents = 'auto';
+
+  imageModal.style.transform =
+    'translate(-50%, -50%) scale(.9)';
+
+  void imageModal.offsetHeight;
+
+  imageModal.style.transition =
+    'transform .45s ease, opacity .35s ease';
+
+  setTimeout(() => {
+
+    overlay.classList.add('show');
+
+    imageModal.classList.add('show');
+
+    imageModal.style.transform =
+      'translate(-50%, -50%) scale(1)';
+
+    burstHearts();
+
+    busy = false;
+
+  },100);
+}
+
+function closeEnvelope(){
+
+  if(busy) return;
+
+  busy = true;
+
+  overlay.classList.remove('show');
+
+  letter.classList.remove('full');
+  imageModal.classList.remove('show');
+
+  letter.style.transition =
+    'transform .35s ease, opacity .35s ease';
+  imageModal.style.transition =
+    'transform .35s ease, opacity .35s ease';
+
+  letter.style.transform =
+    'translate(-50%, -50%) scale(.92)';
+  imageModal.style.transform =
+    'translate(-50%, -50%) scale(.9)';
+
+  setTimeout(() => {
+
+    letter.style.opacity = '0';
+    imageModal.style.opacity = '0';
+
+    letter.style.pointerEvents = 'none';
+    imageModal.style.pointerEvents = 'none';
+
+    envelope.classList.remove('open');
+
+  },250);
+
+  setTimeout(() => {
+
+    hint.style.opacity = '1';
+    imageHint.style.opacity = '1';
+
+    opened = false;
+    busy = false;
+
+  },700);
+}
+
+function burstHearts(){
+
+  const container =
+    document.getElementById('hearts');
+
+  const symbols =
+    ['♥','❤','💕','♡'];
+
+  for(let i=0;i<18;i++){
+
+    const heart =
+      document.createElement('span');
+
+    heart.className = 'heart';
+
+    heart.textContent =
+      symbols[
+        Math.floor(
+          Math.random()*symbols.length
+        )
+      ];
+
+    heart.style.left =
+      (10 + Math.random()*80) + 'vw';
+
+    heart.style.fontSize =
+      (16 + Math.random()*18) + 'px';
+
+    heart.style.animationDelay =
+      (Math.random()*1) + 's';
+
+    container.appendChild(heart);
+
+    setTimeout(()=>{
+      heart.remove();
+    },3000);
+  }
+}
+
+const canvas = document.getElementById('petals');
+const ctx = canvas.getContext('2d');
+
+let petals = [];
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+
+resize();
+window.addEventListener('resize',resize);
+
+function spawnPetal(){
+
+  petals.push({
+    x:Math.random()*canvas.width,
+    y:-20,
+    size:5 + Math.random()*8,
+    speed:1 + Math.random()*1.5,
+    drift:(Math.random()-.5)*1,
+    rot:Math.random()*Math.PI*2
+  });
+}
+
+setInterval(spawnPetal,400);
+
+function animate(){
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  petals.forEach(p=>{
+
+    ctx.save();
+
+    ctx.translate(p.x,p.y);
+
+    ctx.rotate(p.rot);
+
+    ctx.fillStyle = 'rgba(255,140,170,.7)';
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+      0,
+      0,
+      p.size*.7,
+      p.size,
+      0,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+
+    ctx.restore();
+
+    p.y += p.speed;
+    p.x += p.drift;
+    p.rot += .01;
+  });
+
+  petals = petals.filter(
+    p => p.y < canvas.height + 30
+  );
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+<audio id="bgMusic" muted>
+  <source src="No One Else.mp3" type="audio/mpeg">
+</audio>
+</body>
+</html>
